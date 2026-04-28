@@ -1,0 +1,173 @@
+<<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CycleFlow+ AI</title>
+    <style>
+        body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+        
+        background-color: #ffeef8;
+        background-image: url('pattern.png');
+        display: flex;
+        flex-direction: column; 
+        align-items: center;   
+        justify-content: flex-start;         
+        min-height: 100vh;
+        margin: 0;
+        
+        padding-bottom: 60px;      
+}
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 380px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        input, select, button, textarea {
+            width: 95%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+        label {
+            display: block;
+            text-align: left;
+            margin: 10px 0 2px 10px;
+            font-size: 0.85rem;
+            color: #666;
+            font-weight: bold;
+        }
+        button {
+            background: #6a5acd;
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 15px;
+        }
+        .ai-section {
+            background: #f8faff;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 15px;
+            border: 1px dashed #6a5acd;
+        }
+        .ai-label { color: #6a5acd; font-weight: bold; display: block; margin-bottom: 5px; }
+        .warning { color: red; margin-top: 10px; }
+        #output { margin-top: 15px; font-weight: bold; color: #333; }
+        .footer-note { font-size: 0.7rem; color: #999; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>CycleFlow+ AI</h2>
+
+    <input type="text" id="name" placeholder="Name">
+    <input type="number" id="age" placeholder="Age">
+    <input type="number" id="cycleLength" placeholder="Avg Cycle Length (e.g. 28)">
+
+    <label>Health Condition</label>
+    <select id="health">
+        <option value="normal">Normal / None</option>
+        <option value="pcos">PCOS</option>
+        <option value="pcod">PCOD</option>
+        <option value="thyroid">Thyroid</option>
+    </select>
+
+    <label>Current Mood</label>
+    <select id="mood">
+        <option value="Happy 😊">Happy 😊</option>
+        <option value="Tired 😴">Tired 😴</option>
+        <option value="Cranky 😤">Cranky 😤</option>
+        <option value="Sad 😢">Sad 😢</option>
+    </select>
+
+    <label>Last Period Start Date</label>
+    <input type="date" id="lastDate">
+
+    <div class="ai-section">
+        <span class="ai-label">✨ Gemini Smart Note</span>
+        <textarea id="mood-note" rows="2" placeholder="Tell Gemini more... (e.g. 'Feeling bloated today')"></textarea>
+    </div>
+
+    <button onclick="calculate()">Analyze & Track</button>
+
+    <div id="output"></div>
+    <div id="insight" class="insight"></div>
+    <div id="warning" class="warning"></div>
+    
+    <p class="footer-note">Powered by Gemini • Private & Secure</p>
+</div>
+
+<script>
+function getPhase(daysSinceLast, cycleLength) {
+    if (daysSinceLast <= 5) return "Menstrual";
+    if (daysSinceLast <= cycleLength / 2) return "Follicular";
+    if (daysSinceLast <= (cycleLength / 2 + 2)) return "Ovulation";
+    return "Luteal";
+}
+
+function calculate() {
+    // 1. Get Values
+    let name = document.getElementById("name").value;
+    let age = document.getElementById("age").value;
+    let cycleLength = document.getElementById("cycleLength").value;
+    let dateInput = document.getElementById("lastDate").value;
+    let mood = document.getElementById("mood").value;
+    let condition = document.getElementById("health").value;
+    let note = document.getElementById("mood-note").value;
+
+    let output = document.getElementById("output");
+    let insight = document.getElementById("insight");
+
+    // 2. Validation
+    if (!name || !age || !cycleLength || !dateInput) {
+        output.innerHTML = "Please fill in all basic info!";
+        return;
+    }
+
+    // 3. Calculation
+    let lastDate = new Date(dateInput);
+    let today = new Date();
+    let nextDate = new Date(lastDate);
+    nextDate.setDate(lastDate.getDate() + Number(cycleLength));
+
+    let daysSinceLast = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
+    let phase = getPhase(daysSinceLast, Number(cycleLength));
+
+    output.innerHTML = `Next Period: ${nextDate.toDateString()}<br>Current Phase: ${phase}`;
+
+    // 4. AI Insight Call
+    insight.innerHTML = "Consulting Gemini... 🤖";
+
+    fetch("http://127.0.0.1:5000/get-insight", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            age: age,
+            cycleLength: cycleLength,
+            phase: phase,
+            condition: condition,
+            mood: mood,
+            userNote: note
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        insight.innerHTML = "<br><b>AI Insight:</b><br>" + data.insight;
+    })
+    .catch(() => {
+        insight.innerHTML = "<br><small>Connect your Flask server to see AI insights!</small>";
+    });
+}
+</script>
+
+</body>
+</html>
