@@ -147,7 +147,7 @@ function calculate() {
     // 4. AI Insight Call
     insight.innerHTML = "Consulting Gemini... 🤖";
 
-    fetch("http://SpoorthiShetty.pythonanywhere.com/get-insight", {
+    fetch("https://SpoorthiShetty.pythonanywhere.com/get-insight", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
