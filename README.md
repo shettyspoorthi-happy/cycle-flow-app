@@ -1,4 +1,6 @@
 # cycle-flow-app
+[🔗 Click here to view the
+Prototype application](https://shettyspoorthi-happy.github.io/cycle-flow-app/)
 # 🌸 CycleFlow + AI 
 **A smart, aesthetic period tracker powered by Google Gemini AI.**
 
